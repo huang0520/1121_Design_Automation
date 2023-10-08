@@ -1,11 +1,14 @@
+#include <climits>
 #include <fstream>
+#include <ios>
 #include <iostream>
 #include <ostream>
 #include <string>
 #include <vector>
 
 const int INF = 100000;
-const std::string path = "./input/input.txt";
+const std::string input_path = "./input/public_input1.txt";
+const std::string output_path = "./output/public_output1.txt";
 typedef std::vector<std::vector<int>> matrix;
 
 // data storage structure
@@ -32,7 +35,7 @@ auto read_input() {
         : num_node(num_node), input_stream(input_stream) {}
   };
 
-  std::ifstream input(path);
+  std::ifstream input(input_path);
 
   int num_node;
   std::vector<int> vector_tmp;
@@ -87,9 +90,7 @@ auto calculate_min_distance(int state, int node, int num_node, int num_state,
   // 空集合：從起點到 node 的距離（起點到起點為 0）
   if (state == 0)
     return dis_matrix[0][node];
-  else if (node == 0 and state != num_state - 1)
-    return INF;
-  else if (node_in_state)
+  else if (node_in_state or (node == 0 and state != (num_state - 1)))
     return INF;
 
   // 若 node 不在集合內，從集合內找出 min(dp (i, {state - i}) + dis (i, node))
@@ -99,11 +100,9 @@ auto calculate_min_distance(int state, int node, int num_node, int num_state,
     if (not i_in_state) continue;
 
     auto state_except_i = state ^ (1 << (i - 1));
-    auto a = dp_table[state_except_i][i];
-    auto b = dis_matrix[i][node];
 
     // 若 dp (node, {state}) > dp (i, {state - i}) + dis (i, node)
-    if (min_dis > a + b)
+    if (min_dis > dp_table[state_except_i][i] + dis_matrix[i][node])
       // dp (node, {state}) = dp (i, {state - i}) + dis (i, node)
       min_dis = dp_table[state_except_i][i] + dis_matrix[i][node];
   }
@@ -127,9 +126,62 @@ auto build_dp_table(int num_node, int num_state, const matrix& dis_matrix) {
   return dp_table;
 }
 
-// TODO: get the path of the shortest path
+auto get_shortest_path(int num_node, int num_state, const matrix& dis_matrix,
+                       const matrix& dp_table) -> std::vector<int> {
+  // 從 0 回頭
+  std::vector<int> path(1, 0);
+  int state = num_state - 1;
+  int node = 0;
 
-// TODO: output the result to file
+  while (state != 0) {
+    int min_dis = INF;
+    int pre_node;
+
+    for (int i = 1; i < num_node; ++i) {
+      // 若節點 i 不在集合內，跳過
+      bool i_in_state = (state & (1 << (i - 1)));
+      if (not i_in_state) continue;
+
+      // 若節點 i 在集合內，找出 d(i, {state - i})
+      int state_except_i = state ^ (1 << (i - 1));
+
+      // 最小的 d(i, {state - i}) 即為前一個節點
+      if (min_dis > dp_table[state_except_i][i] + dis_matrix[i][node]) {
+        min_dis = dp_table[state_except_i][i] + dis_matrix[i][node];
+        pre_node = i;
+      }
+    }
+
+    auto state_without_pre_node = state ^ (1 << (pre_node - 1));
+    state = state_without_pre_node;
+
+    node = pre_node;
+
+    path.emplace_back(node);
+    // 最後到 state = 0 時，將起點加入 path
+    if (state == 0) path.emplace_back(0);
+  }
+
+  return path;
+}
+
+// dp(0, {1, 2, 3 ..... n}) 即為最短距離
+auto get_shortest_dis(const matrix& dp_table) -> int {
+  return dp_table[dp_table.size() - 1][0];
+}
+
+auto write_output(std::vector<int> shortest_path, int shortest_dis) -> void {
+  std::ofstream output(output_path, std::ios::out);
+
+  output << "Oredering of cities: ";
+  for (auto it = shortest_path.rbegin(); it != shortest_path.rend(); ++it) {
+    output << "v" << *it + 1 << " ";
+  }
+  output << "\n";
+
+  output << "Total distance: " << shortest_dis << "\n";
+  output.close();
+}
 
 int main(int, char**) {
   auto input_data = read_input();
@@ -139,7 +191,17 @@ int main(int, char**) {
 
   auto dp_table = build_dp_table(input_data.num_node, num_state, dis_matrix);
 
-  std::cout << (*(dp_table.end() - 1))[0] << std::endl;
+  for (auto& i : dp_table) {
+    for (auto& j : i) {
+      std::cout << j << " ";
+    }
+    std::cout << "\n";
+  }
 
+  auto shortest_path =
+      get_shortest_path(input_data.num_node, num_state, dis_matrix, dp_table);
+  auto shortest_dis = get_shortest_dis(dp_table);
+
+  write_output(shortest_path, shortest_dis);
   return 0;
 }
