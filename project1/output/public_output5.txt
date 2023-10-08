@@ -1,0 +1,3 @@
+Total distance: 25
+Oredering of cities:
+v1 v10 v5 v12 v8 v6 v4 v11 v3 v9 v7 v2 v1 

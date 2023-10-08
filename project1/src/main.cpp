@@ -7,8 +7,6 @@
 #include <vector>
 
 const int INF = 100000;
-const std::string input_path = "./input/public_input1.txt";
-const std::string output_path = "./output/public_output1.txt";
 typedef std::vector<std::vector<int>> matrix;
 
 // data storage structure
@@ -26,7 +24,7 @@ struct Data {
 };
 
 // Input functions
-auto read_input() {
+auto read_input(std::string input_path) {
   struct Input_Data {
     int num_node;
     std::vector<int> input_stream;
@@ -63,6 +61,20 @@ auto read_input() {
   Input_Data input_data(num_node, vector_tmp);
 
   return input_data;
+}
+
+auto write_output(std::string output_path, std::vector<int> shortest_path,
+                  int shortest_dis) -> void {
+  std::ofstream output(output_path, std::ios::out);
+
+  output << "Total distance: " << shortest_dis << "\n";
+  output << "Oredering of cities:\n";
+  for (auto it = shortest_path.rbegin(); it != shortest_path.rend(); ++it) {
+    output << "v" << *it + 1 << " ";
+  }
+  output << "\n";
+
+  output.close();
 }
 
 auto build_dis_matrix(const std::vector<int>& input_stream, int num_node)
@@ -170,38 +182,21 @@ auto get_shortest_dis(const matrix& dp_table) -> int {
   return dp_table[dp_table.size() - 1][0];
 }
 
-auto write_output(std::vector<int> shortest_path, int shortest_dis) -> void {
-  std::ofstream output(output_path, std::ios::out);
+int main(int argc, char** argv) {
+  std::string input_path = argv[argc - 2];
+  std::string output_path = argv[argc - 1];
 
-  output << "Oredering of cities: ";
-  for (auto it = shortest_path.rbegin(); it != shortest_path.rend(); ++it) {
-    output << "v" << *it + 1 << " ";
-  }
-  output << "\n";
-
-  output << "Total distance: " << shortest_dis << "\n";
-  output.close();
-}
-
-int main(int, char**) {
-  auto input_data = read_input();
+  auto input_data = read_input(input_path);
   auto dis_matrix =
       build_dis_matrix(input_data.input_stream, input_data.num_node);
   auto num_state = 1 << (input_data.num_node - 1);
 
   auto dp_table = build_dp_table(input_data.num_node, num_state, dis_matrix);
 
-  for (auto& i : dp_table) {
-    for (auto& j : i) {
-      std::cout << j << " ";
-    }
-    std::cout << "\n";
-  }
-
   auto shortest_path =
       get_shortest_path(input_data.num_node, num_state, dis_matrix, dp_table);
   auto shortest_dis = get_shortest_dis(dp_table);
 
-  write_output(shortest_path, shortest_dis);
+  write_output(output_path, shortest_path, shortest_dis);
   return 0;
 }
