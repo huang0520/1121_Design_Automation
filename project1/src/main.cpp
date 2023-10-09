@@ -1,8 +1,7 @@
-#include <climits>
+#include <chrono>
 #include <fstream>
-#include <ios>
+#include <iomanip>
 #include <iostream>
-#include <ostream>
 #include <string>
 #include <vector>
 
@@ -64,15 +63,17 @@ auto read_input(std::string input_path) {
 }
 
 auto write_output(std::string output_path, std::vector<int> shortest_path,
-                  int shortest_dis) -> void {
+                  int shortest_dis, double execution_time) -> void {
   std::ofstream output(output_path, std::ios::out);
 
   output << "Total distance: " << shortest_dis << "\n";
-  output << "Oredering of cities:\n";
+  output << "Oredering of cities:\n  ";
   for (auto it = shortest_path.rbegin(); it != shortest_path.rend(); ++it) {
     output << "v" << *it + 1 << " ";
   }
   output << "\n";
+  output << "Execution time: " << std::fixed << execution_time
+         << std::setprecision(5) << " seconds\n";
 
   output.close();
 }
@@ -183,8 +184,10 @@ auto get_shortest_dis(const matrix& dp_table) -> int {
 }
 
 int main(int argc, char** argv) {
-  std::string input_path = argv[argc - 2];
-  std::string output_path = argv[argc - 1];
+  std::string input_path = argv[1];
+  std::string output_path = argv[2];
+
+  auto start_time = std::chrono::high_resolution_clock::now();
 
   auto input_data = read_input(input_path);
   auto dis_matrix =
@@ -197,6 +200,11 @@ int main(int argc, char** argv) {
       get_shortest_path(input_data.num_node, num_state, dis_matrix, dp_table);
   auto shortest_dis = get_shortest_dis(dp_table);
 
-  write_output(output_path, shortest_path, shortest_dis);
+  auto end_time = std::chrono::high_resolution_clock::now();
+  double execution_time =
+      std::chrono::duration<double, std::milli>(end_time - start_time).count() /
+      1000.;
+
+  write_output(output_path, shortest_path, shortest_dis, execution_time);
   return 0;
 }
