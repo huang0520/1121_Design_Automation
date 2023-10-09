@@ -1,3 +1,4 @@
 Total distance: 16
 Oredering of cities:
-v1 v6 v4 v3 v5 v2 v1 
+  v1 v6 v4 v3 v5 v2 v1
+Execution time: 0.000093 seconds
