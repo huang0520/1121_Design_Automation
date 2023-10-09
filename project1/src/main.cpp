@@ -8,20 +8,6 @@
 const int INF = 100000;
 typedef std::vector<std::vector<int>> matrix;
 
-// data storage structure
-struct Data {
-  int num_node, num_state;
-  matrix dis_matrix;
-  matrix dp_table;
-
-  // 狀態的數量為 2^(num_node)
-  Data(int num_node) : num_node(num_node), num_state(1 << (num_node - 1)) {
-    dis_matrix = matrix(num_node, std::vector<int>(num_node, INF));
-    for (int i = 0; i < num_node; ++i) dis_matrix[i][i] = 0;
-    dp_table = matrix(num_state, std::vector<int>(num_node, INF));
-  }
-};
-
 // Input functions
 auto read_input(std::string input_path) {
   struct Input_Data {
@@ -36,6 +22,11 @@ auto read_input(std::string input_path) {
 
   int num_node;
   std::vector<int> vector_tmp;
+
+  // Read the first two comments
+  std::string comment;
+  std::getline(input, comment);
+  std::getline(input, comment);
 
   while (!input.eof()) {
     char tmp;
