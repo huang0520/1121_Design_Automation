@@ -2,6 +2,7 @@
 .vscode/
 build/
 reference/
+data/
 
 .DS_Store
 *.tar.gz
